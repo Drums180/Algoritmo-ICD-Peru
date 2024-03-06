@@ -1,0 +1,14 @@
+# Data Procesada
+ICD/data_procesada/February_2024.csv
+ICD/ICD-Indice_de_Calidad_de_Data.xlsx
+ICD/master_calidad.xlsx
+
+# Bases de datos internas
+ICD/fuentes_datos/clientes/MD_TRAD_PERU_11.23.xlsx
+
+# Data de Parametros
+ICD/parametros.xlsx
+
+# Datos de Almacenamiento Interno de R
+ICD/fuentes_datos/.RData
+ICD/fuentes_datos/.Rhistory
