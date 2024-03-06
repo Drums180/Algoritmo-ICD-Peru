@@ -12,3 +12,4 @@ ICD/parametros.xlsx
 # Datos de Almacenamiento Interno de R
 ICD/fuentes_datos/.RData
 ICD/fuentes_datos/.Rhistory
+.DS_Store
