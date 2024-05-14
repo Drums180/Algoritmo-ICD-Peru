@@ -1,28 +1,61 @@
 ---
-title: "Indice de Calidad - PERU"
+title: "Indice de Calidad - Perú"
 author: "David Dominguez - A01570975"
 date: "2023-09-14"
 output: html_document
 ---
 
-# Llamar Librerias
+![Data Quality Algorithm](src/data_quality.png)
+
+# Algoritmo de Validación de Calidad
+El **Algoritmo de validación de Calidad** es un modelo diseñado para unificar y automatizar los procesos de limpieza, transformación, unificación y validación de datos en la mayor medida posible. Su objetivo principal es asegurar que la información sea confiable y representativa de la realidad, facilitando la toma de decisiones basadas en datos precisos y fidedignos.
+
+Este algoritmo forma parte del proyecto **CENSO MONITOREO 2023**, el cual propuso el uso de tecnología de reconocimiento fotográfico para habilitar a la fuerza de ventas como auditores. De esta manera, se busca recopilar información de manera eficiente, rápida y orientada a datos para tomar decisiones informadas. El programa, iniciado en septiembre de 2023, se centró inicialmente en el canal tradicional, incluyendo subcanales como abarrotes y fruterías, que son esenciales para los negocios que consumen nuestros productos a nivel nacional.
+
+## Llamar Librerias
+Esta sección está dedicada a cargar todas las librerías necesarias para ejecutar el **Algoritmo de Validación de Calidad**. Las librerías seleccionadas facilitan una amplia gama de operaciones cruciales para el procesamiento y análisis de datos:
+
+- `dplyr`: Esencial para la manipulación y transformación eficiente de datos.
+- `readr`: Permite la lectura rápida y sencilla de datos tabulares.
+- `readxl`: Utilizado para importar datos desde archivos Excel.
+- `tidyverse`: Un compendio de paquetes para ciencia de datos que incluye `dplyr`, `ggplot2`, entre otros, proporcionando herramientas completas para el análisis de datos.
+- `fs`: Facilita el manejo del sistema de archivos.
+- `purrr`: Permite la programación funcional para iterar operaciones en listas y vectores.
+- `openxlsx`: Ofrece capacidades avanzadas para la lectura y escritura de archivos Excel.
+- `sf`: Especializado en el manejo de datos espaciales y geográficos.
+- `httr`: Esencial para la comunicación con APIs web, permitiendo interactuar con otros servicios de software.
+- `jsonlite`: Maneja y procesa datos en formato JSON.
+- `ggplot2`: Proporciona herramientas avanzadas para la visualización gráfica de datos.
+- `stringr`: Simplifica la manipulación y gestión de texto.
+
+Estas herramientas son fundamentales para garantizar la ejecución eficiente y efectiva del algoritmo, permitiendo una gestión de datos robusta y fiable que respalde la toma de decisiones informadas.
+
 ```{r message=FALSE, warning=FALSE}
-library(dplyr)
-library(readr)
-library(readxl)
-library(tidyverse)
-library(fs) # para funciones de sistema de archivos
-library(purrr)
-library(openxlsx)
-library(sf)
-library(httr)
-library(jsonlite)
-library(ggplot2)
+library(dplyr)    # Manipulación de datos
+library(readr)    # Lectura de datos tabulares
+library(readxl)   # Lectura de archivos Excel
+library(tidyverse) # Ciencia de datos (incluye dplyr, ggplot2, etc.)
+library(fs)       # Manejo del sistema de archivos
+library(purrr)    # Programación funcional
+library(openxlsx) # Lectura/escritura de Excel avanzada
+library(sf)       # Datos espaciales
+library(httr)     # Comunicación con APIs web
+library(jsonlite) # Trabajo con JSON
+library(ggplot2)  # Visualización de datos
+library(stringr)
 ```
 
-# Carga de Base de Datos
+## Carga de Base de Datos
+La carga de bases de datos es esencial para la operación del **Algoritmo de Validación de Calidad**. Este proceso implica la recolección y combinación de diversos conjuntos de datos, cada uno crucial para distintas etapas del análisis. A continuación, se detalla la funcionalidad y el propósito de cada base de datos utilizada:
 
-## Quality Data
+
+### Quality Data
+Esta sección del código se encarga de combinar múltiples archivos de datos, ya sean CSV o Excel, provenientes de diferentes fuentes. El propósito es unificar esta información en un solo dataframe, aplicando transformaciones específicas como la conversión de tipos de datos para garantizar la consistencia y la integridad de la información. Las bases de datos procesadas aquí incluyen:
+
+- **actual**: Contiene información procesada de reconocimiento fotográfico con los facings de productos de Arca Continental y otros.
+- **session**: Registra datos de cada sesión de toma de fotos, incluyendo el usuario, el cliente, y las coordenadas geográficas.
+- **survey**: Filtra los datos de la sesión por tipo de encuesta, centrándose en censo y otros tipos específicos.
+- **scenes**: Detalla el tipo de foto tomada, como imágenes de refrigeradores o estantes, clasificando si son de ambiente o enfriadores.
 ```{r message=FALSE, warning=FALSE}
 setwd("fuentes_datos/")  # Establecer ruta de trabajo
 
@@ -95,7 +128,9 @@ df_survey <- combine_files("survey/")
 df_scenes <- combine_files("scenes/")
 ```
 
-## Master Clientes
+### Master Clientes
+El código aquí presente está destinado a crear un 'master' de clientes a partir de varios archivos, los cuales se limpian y estandarizan para asegurar una nomenclatura consistente. Este 'master' es fundamental para realizar cruces de datos y análisis demográficos o de mercado sobre los clientes. Combina y deduplica registros para formar una base robusta y actualizada de información cliente.
+
 ```{r message=FALSE, warning=FALSE}
 # Leer todos los archivos en fuentes_datos/clientes, excepto el de clientes que leeremos directamente
 all_dfs <- read_excel("fuentes_datos/clientes/MD TRAD PERU 11.23.xlsx")
@@ -125,7 +160,9 @@ master_clientes <- all_dfs
 head(master_clientes)
 ```
 
-## Parametros
+### Parametros
+Finalmente, esta sección carga parámetros específicos que son necesarios para el funcionamiento del algoritmo. Estos parámetros pueden incluir configuraciones, límites y otros valores clave que influyen en el procesamiento y análisis de los datos.
+
 ```{r message=FALSE, warning=FALSE}
 # Cargar la hoja "data" del archivo "parametros"
 parametros_data <- read_excel("parametros.xlsx", sheet = "data")
@@ -134,9 +171,14 @@ parametros_data <- read_excel("parametros.xlsx", sheet = "data")
 head(parametros_data)
 ```
 
-# Sabana de Analisis
+Cada una de estas bases de datos juega un rol crucial en asegurar que el **Algoritmo de Validación de Calidad** funcione de manera óptima, proporcionando resultados precisos y confiables para la toma de decisiones basada en datos.
 
-## Tiempo
+## Sabana de Analisis
+
+Esta sección aborda el análisis detallado de los datos recolectados, enfocándose en tres aspectos principales: tiempo, coordenadas y frentes. Cada subsección aplica transformaciones y cálculos específicos para extraer métricas clave que apoyan la interpretación y las decisiones basadas en los datos.
+
+### Tiempo
+En esta subsección, convertimos la duración de las encuestas de segundos a minutos para facilitar la interpretación. Además, creamos una variable binaria que indica si el estatus de la encuesta es 'Completa'. Estas transformaciones permiten analizar más eficientemente el tiempo dedicado a cada sesión y su finalización.
 ```{r}
 df_survey <- df_survey %>%
   mutate(duration = `Duration(Sec)` / 60) %>%
@@ -146,7 +188,9 @@ df_survey <- df_survey %>%
 head(df_survey)
 ```
 
-## Coordenadas
+### Coordenadas 
+Calculamos la distancia entre dos puntos geográficos utilizando la fórmula del haversine, que es esencial para entender la dispersión geográfica de las sesiones y clientes. Posteriormente, integramos datos de clientes para calcular estas distancias y identificar valores atípicos, los cuales se reemplazan por 0 para normalizar el análisis.
+
 ```{r}
 # Función del haversine para calcular distancia entre dos puntos de latitud y longitud
 haversine <- function(lon1, lat1, lon2, lat2) {
@@ -196,7 +240,9 @@ print(outliers)
 head(df_session)
 ```
 
-## Frentes
+### Frentes
+Esta subsección evalúa la presencia y el tipo de productos en puntos de venta, calculando el número de frentes de productos propios y competidores. También determinamos el SOVI (Share of Visual Inventory), que mide la visibilidad de la marca en relación con los competidores.
+
 ```{r}
 frentes_df <- df_actual %>%
   group_by(SessionUID) %>%
@@ -219,7 +265,9 @@ frentes_df <- df_actual %>%
 head(frentes_df)
 ```
 
-## Enfriadores
+### Enfriadores
+Esta subsección analiza y cuenta los tipos de enfriadores presentes en las escenas capturadas. Utilizamos el agrupamiento por `SessionUID` y `SubSceneType` para contar cada tipo de enfriador y luego transformar estos conteos en columnas específicas. Este análisis es vital para entender la distribución y prevalencia de nuestros enfriadores en comparación con los cedidos por la competencia en los puntos de venta.
+
 ```{r}
 result_enfriadores <- df_scenes %>%
   # Agrupar por SessionUID y SubSceneType y contar
@@ -244,7 +292,9 @@ result_enfriadores <- result_enfriadores %>%
 head(result_enfriadores)
 ```
 
-## Scenes
+### Scenes
+En esta subsección, combinamos datos de `df_actual` con `df_scenes` para enriquecer el análisis de las escenas capturadas con el tipo de subescena. Calculamos el número de frentes por cada tipo de subescena y aplicamos filtros para identificar escenas con significancia estadística, excluyendo ciertos tipos bajo criterios específicos.
+
 ```{r}
 # Calculando el número total de escenas por SessionUID
 df_total_scenes <- df_scenes %>%
@@ -276,7 +326,9 @@ df_scenenum$Scenes_Frio[is.na(df_scenenum$Scenes_Frio)] <- 0
 print(df_scenenum)
 ```
 
-## Flags
+### Flags
+Esta subsección se dedica a la detección y manejo de 'flags' o indicadores en la calidad de imagen. Procesamos la columna `ImageQuality` para identificar y resumir los flags detectados, aplicando una lógica específica para transformar y analizar estos datos, lo cual es crucial para garantizar la integridad y utilidad de las imágenes en análisis posteriores.
+
 ```{r}
 # Creación del vector de valores de flag
 flag_values <- c(2, 4, 13, 14, 15, 16, 26, 27, 32, 36, 39, 31)
@@ -337,54 +389,155 @@ result_scenes$detected_flags <- sapply(result_scenes$ImageQuality, detect_flags)
 head(result_scenes)
 ```
 
-## Cuotas
+## Empalme de Información
+Esta sección se centra en la gestión y combinación de datos históricos con datos recientes, lo cual es crucial para realizar análisis longitudinales y mantener la consistencia y continuidad de la información a lo largo del tiempo. 
 
+### Cargar Data Historica
+Inicialmente, verificamos y cargamos todos los archivos históricos disponibles en un formato estructurado. Esto incluye asegurar que las identificaciones de los puntos de venta sean tratadas como caracteres para mantener la integridad de los datos. Los datos históricos se seleccionan y preparan con una serie de columnas específicas para futuros análisis y comparaciones.
 
+```{r message=FALSE, warning=FALSE}
+# Ruta a la carpeta con archivos históricos procesados
+ruta_carpeta <- "data_procesada/"
 
-# Sabana Calidad Semilla 
-```{r}
-master_calidad <- df_survey %>%
-  select(SessionUID = "Session Uid", SurveyType = "Survey Type", User, `Outlet Code`, duration, `Survey End Time`, estatus) %>%
-  
-  # Unión con master_clientes
-  left_join(master_clientes %>% 
-              mutate(codigo_cliente = as.character(codigo_cliente)) %>%
-              select(codigo_cliente, tamaño_homologado, region_comercial, canal_isscom, subcanal_isscom, subregion_comercial, territorio),
-            by = c("Outlet Code" = "codigo_cliente")) %>%
-  
-  # Incorporar columnas de df_session
-  left_join(df_session %>% select(SessionUId, distance),
-            by = c("SessionUID" = "SessionUId")) %>%  
-  
-  # Incorporar métricas de frentes_df
-  left_join(frentes_df %>% select(SessionUID, frentes_total, frentes_arca, sovi),
-            by = "SessionUID") %>%
+# Verificar si hay archivos históricos
+archivos_historicos <- list.files(path = ruta_carpeta, pattern = "\\.csv$", full.names = TRUE)
 
-  # Incorporar columna flag_trigger de result_scenes
-  left_join(result_scenes %>% select(SessionUID, flag_trigger, detected_flags),
-            by = "SessionUID") %>%
-
-  # Incorporar columna enfriador_total de result_enfriadores
-  left_join(result_enfriadores %>% select(SessionUID, enfriador_total),
-            by = "SessionUID") %>%
-  
-  # Seleccionar y reordenar columnas
-  select(
-    SessionUID, SurveyType, User, `Outlet Code`, 
-    region_comercial, tamaño_homologado, canal_isscom, subcanal_isscom,
-    duration, distance,
-    frentes_total, frentes_arca, sovi, flag_trigger, enfriador_total, detected_flags, subregion_comercial, territorio, `Survey End Time`, estatus
+if (length(archivos_historicos) > 0) {
+  # Cargar y combinar todos los archivos históricos en un dataframe
+  datos_historicos <- map_dfr(archivos_historicos, function(file) {
+    datos <- read_csv(file)
+    datos$`Outlet Code` <- as.character(datos$`Outlet Code`)  # Asegurar que Outlet Code sea siempre un carácter
+    select(datos,
+      SessionUID, SurveyType, User, `Outlet Code`, 
+      region_comercial, tamaño_homologado, canal_isscom, subcanal_isscom,
+      duration, distance, 
+      frentes_total, frentes_arca, sovi, flag_trigger, enfriador_total, 
+      Num.Scenes, Scenes_Amb, Scenes_Frio, detected_flags,
+      subregion_comercial, territorio, `Survey End Time`, estatus
+    )
+  })
+} else {
+  # Inicializar un dataframe vacío con las columnas esperadas
+  datos_historicos <- tibble(
+    SessionUID = character(), SurveyType = character(), User = character(), `Outlet Code` = character(),
+    region_comercial = character(), tamaño_homologado = character(), canal_isscom = character(), subcanal_isscom = character(),
+    duration = numeric(), distance = numeric(), 
+    frentes_total = numeric(), frentes_arca = numeric(), sovi = numeric(), flag_trigger = numeric(), enfriador_total = numeric(),
+    Num.Scenes = numeric(), Scenes_Amb = numeric(), Scenes_Frio = numeric(), detected_flags = character(),
+    subregion_comercial = character(), territorio = character(), `Survey End Time` = Date(), estatus = numeric()
   )
-
-# Añadir la información de df_scenenum a master_calidad
-master_calidad <- master_calidad %>%
-  left_join(df_scenenum, by = "SessionUID")
-
-# Verificar el nuevo dataframe
-head(master_calidad)
+}
 ```
 
-## Eliminar Directorio
+### Data Nueva e Historica Combinada
+Después de preparar los datos históricos, procedemos a integrarlos con los datos nuevos recolectados en encuestas recientes. Esto asegura que tengamos un conjunto de datos completo y actualizado, con `Survey End Time` estandarizado a tipo fecha, permitiendo análisis temporales precisos y efectivos.
+
+```{r}
+# Preparar datos nuevos de df_survey con las columnas relevantes
+nuevos_datos_survey <- df_survey %>%
+  mutate(
+    `Survey End Time` = as.Date(substr(`Survey End Time`, 1, 10), format = "%d/%m/%Y"),
+    SessionUID = `Session Uid`, 
+    SurveyType = `Survey Type`, 
+    duration = `Duration(Sec)`
+  ) %>%
+  select(
+    SessionUID, SurveyType, User, `Outlet Code`, duration, `Survey End Time`, estatus
+  )
+
+# Combinar datos históricos con nuevos datos de survey, ahora ambos con 'Survey End Time' como tipo Date
+datos_combinados <- bind_rows(datos_historicos, nuevos_datos_survey) %>%
+  distinct(SessionUID, .keep_all = TRUE)
+```
+
+## Sabana Calidad Semilla 
+Esta sección se encarga de imputar datos faltantes en el conjunto de datos combinado utilizando información de varias fuentes para garantizar la integridad y la completitud de los datos. Las imputaciones se realizan en campos clave que son críticos para el análisis posterior y la toma de decisiones.
+
+```{r}
+# Imputaciones desde df_session para 'distance'
+datos_combinados <- datos_combinados %>%
+  mutate(
+    distance = ifelse(is.na(distance),
+                      df_session$distance[match(SessionUID, df_session$SessionUId)],
+                      distance)
+  )
+
+# Imputaciones desde frentes_df para 'frentes_total', 'frentes_arca', y 'sovi'
+datos_combinados <- datos_combinados %>%
+  mutate(
+    frentes_total = ifelse(is.na(frentes_total),
+                           frentes_df$frentes_total[match(SessionUID, frentes_df$SessionUID)],
+                           frentes_total),
+    frentes_arca = ifelse(is.na(frentes_arca),
+                          frentes_df$frentes_arca[match(SessionUID, frentes_df$SessionUID)],
+                          frentes_arca),
+    sovi = ifelse(is.na(sovi),
+                  frentes_df$sovi[match(SessionUID, frentes_df$SessionUID)],
+                  sovi)
+  )
+
+# Imputaciones desde result_scenes para 'flag_trigger' y 'detected_flags'
+datos_combinados <- datos_combinados %>%
+  mutate(
+    flag_trigger = ifelse(is.na(flag_trigger),
+                          result_scenes$flag_trigger[match(SessionUID, result_scenes$SessionUID)],
+                          flag_trigger),
+    detected_flags = ifelse(is.na(detected_flags),
+                            result_scenes$detected_flags[match(SessionUID, result_scenes$SessionUID)],
+                            detected_flags)
+  )
+
+# Imputaciones desde result_enfriadores para 'enfriador_total'
+datos_combinados <- datos_combinados %>%
+  mutate(
+    enfriador_total = ifelse(is.na(enfriador_total),
+                             result_enfriadores$enfriador_total[match(SessionUID, result_enfriadores$SessionUID)],
+                             enfriador_total)
+  )
+
+# Imputaciones para datos de clientes
+datos_combinados <- datos_combinados %>%
+  mutate(
+    tamaño_homologado = ifelse(is.na(tamaño_homologado),
+                    master_clientes$tamaño_homologado[match(`Outlet Code`, master_clientes$codigo_cliente)],
+                    tamaño_homologado),
+    region_comercial = ifelse(is.na(region_comercial),
+                                   master_clientes$region_comercial[match(`Outlet Code`, master_clientes$codigo_cliente)],
+                                   region_comercial),
+    canal_isscom = ifelse(is.na(canal_isscom),
+                              master_clientes$canal_isscom[match(`Outlet Code`, master_clientes$codigo_cliente)],
+                              canal_isscom),
+    subcanal_isscom = ifelse(is.na(subcanal_isscom),
+                              master_clientes$subcanal_isscom[match(`Outlet Code`, master_clientes$codigo_cliente)],
+                              subcanal_isscom),
+    subregion_comercial = ifelse(is.na(subregion_comercial),
+                                master_clientes$subregion_comercial[match(`Outlet Code`, master_clientes$codigo_cliente)],
+                                subregion_comercial),
+    territorio = ifelse(is.na(territorio),
+                        master_clientes$territorio[match(`Outlet Code`, master_clientes$codigo_cliente)],
+                        territorio)
+  )
+
+# Imputaciones desde df_summary para 'Num.Scenes', 'Scenes_Amb', y 'Frio_Scenes'
+datos_combinados <- datos_combinados %>%
+  mutate(
+    Num.Scenes = ifelse(is.na(Num.Scenes),
+                        df_scenenum$Num.Scenes[match(SessionUID, df_scenenum$SessionUID)],
+                        Num.Scenes),
+    Scenes_Amb = ifelse(is.na(Scenes_Amb),
+                        df_scenenum$Scenes_Amb[match(SessionUID, df_scenenum$SessionUID)],
+                        Scenes_Amb),
+    Scenes_Frio = ifelse(is.na(Scenes_Frio),
+                        df_scenenum$Scenes_Frio[match(SessionUID,df_scenenum$SessionUID)],
+                        Scenes_Frio)
+)
+
+master_calidad <- datos_combinados
+```
+
+### Eliminar Directorio
+Después de consolidar los datos necesarios, limpiamos los directorios para mantener un entorno de trabajo organizado y eficiente. Esta práctica asegura que solo se retengan los archivos esenciales, facilitando la gestión de datos y la prevención de errores de procesamiento debido a la presencia de archivos obsoletos o innecesarios.
+
 ```{r}
 # Función para limpiar directorio de archivos individuales, manteniendo solo el combinado
 clean_directory <- function(path) {
@@ -400,11 +553,15 @@ clean_directory <- function(path) {
 # Limpiar directorios de archivos individuales
 clean_directory("fuentes_datos/session/")
 clean_directory("fuentes_datos/survey/")
+clean_directory("fuentes_datos/actual/")
+clean_directory("fuentes_datos/scenes/")
 ```
 
-# Correción de Datos
+## Correción de Datos
 
-## Flags Inducidas 
+### Flags Inducidas 
+En esta subsección, implementamos correcciones específicas para las flags en los datos, basándonos en criterios predeterminados que reflejan inconsistencias o condiciones anómalas en los datos. Estas correcciones son críticas para mantener la integridad de los análisis y asegurar que las decisiones basadas en estos datos sean sólidas y fiables.
+
 ```{r}
 # 1. Contar los SceneUID distintos para cada SessionUID
 scene_count_df <- df_actual %>%
@@ -438,22 +595,11 @@ master_calidad <- master_calidad_temp %>%
 head(master_calidad)
 ```
 
-## Session End Time (as.Date and only first 10)
-```{r}
-master_calidad <- master_calidad %>%
-  mutate(
-    `Survey End Time` = as.Date(substr(`Survey End Time`, 1, 10), format = "%d/%m/%Y")
-  )
+## Evaluación de Data
 
-# Corregir la columna 'detected_flags' para asegurar que haya comas entre cada dos caracteres
-master_calidad$detected_flags <- str_replace_all(master_calidad$detected_flags, "(\\d{2})(?!$)", "\\1,")
+### Union con Base de Datos de Parametros
+Esta subsección del análisis se centra en enriquecer y evaluar la calidad del conjunto de datos maestro (`master_calidad`) a través de la incorporación de parámetros externos. Estos parámetros pueden incluir variables críticas que afectan la interpretación y el análisis posterior de los datos, tales como categorías de tamaño, canales comerciales y sub-canales específicos. La unión se realiza mediante campos clave que incluyen el tamaño del cliente, el código del canal comercial y el sub-canal.
 
-# Verificar los primeros registros para asegurar que la corrección se aplicó correctamente
-head(master_calidad)
-```
-
-----------EVALUACIÓN-----------
-# Evaluación de Data
 ```{r}
 # Paso 1: Unión con parametros_data
 master_evaluado <- master_calidad %>%
@@ -587,8 +733,10 @@ master_evaluado <- master_evaluado %>%
 head(master_evaluado)
 ```
 
-# Imputación de Territorio según coordenadas
-```{r}
+### Imputación de Territorio según coordenadas
+En esta parte del proceso, nos aseguramos de que los datos geográficos estén disponibles en el conjunto de datos evaluado. Al integrar las coordenadas de latitud y longitud de las sesiones, podemos realizar análisis geográficos o imputaciones de territorio basadas en estas coordenadas. Esto es esencial para cualquier análisis que requiera una dimensión espacial o para validar la coherencia geográfica de los datos.
+
+```{r message=FALSE, warning=FALSE}
 # Asegurándonos que SessionUID es del mismo tipo en ambos dataframes
 df_session$SessionUID <- as.character(df_session$SessionUId)
 master_evaluado$SessionUID <- as.character(master_evaluado$SessionUID)
@@ -599,70 +747,103 @@ master_evaluado <- master_evaluado %>%
             by = "SessionUID")
 ```
 
-```{r}
-# Asegurarse de que las variables están en el formato correcto
-master_evaluado$frentes_total <- as.numeric(master_evaluado$frentes_total)
+## Guardado de Data
 
-# Ordenar los niveles de 'tamaño_homologado'
-master_evaluado$tamaño_homologado <- factor(master_evaluado$tamaño_homologado, 
-                                            levels = c("Chico", "Mediano", "Grande", NA))
-
-# Crear un gráfico de caja para mostrar la dispersión de 'frentes_total' agrupado por 'tamaño_homologado'
-ggplot(master_evaluado, aes(x = tamaño_homologado, y = frentes_total)) +
-  geom_boxplot() +
-  theme_minimal() +
-  labs(title = "Dispersión de la variable 'frentes_total' por 'tamaño_homologado'",
-       x = "Tamaño Homologado",
-       y = "Frentes Total")
-```
-
-
------------ GUARDAR DATA PROCESADA
+### Almacenamiento Mensual
+Esta parte del proceso involucra la organización y el almacenamiento de los datos evaluados en archivos separados por mes y año. Esto permite una fácil recuperación y análisis de los datos basados en intervalos de tiempo específicos, manteniendo un control adecuado sobre la evolución de los datos y facilitando el acceso histórico cuando sea necesario.
 
 ```{r message=FALSE, warning=FALSE}
-# Obtener el mes y año actual automáticamente
-mes_actual <- format(Sys.Date(), "%B_%Y")
+# Asegurarse de que 'Survey End Time' está en formato de fecha
+master_evaluado$`Survey End Time` <- as.Date(master_evaluado$`Survey End Time`, format = "%Y-%m-%d")
 
-# Leer o inicializar el archivo del mes
-archivo_csv_mes <- paste0("data_procesada/", mes_actual, ".csv")
+# Convertir la columna 'detected_flags' a tipo caracter para evitar problemas al combinar dataframes
+master_evaluado$detected_flags <- as.character(master_evaluado$detected_flags)
 
-# Cargar datos del mes si el archivo existe, o crear un dataframe vacío si no existe
-if (file.exists(archivo_csv_mes)) {
-  datos_mes <- read_csv(archivo_csv_mes)
-} else {
-  datos_mes <- tibble() # Crear un tibble vacío
+# Convertir 'Outlet Code' a tipo caracter en master_evaluado para evitar problemas al combinar
+master_evaluado$`Outlet Code` <- as.character(master_evaluado$`Outlet Code`)
+
+# Extraer mes y año de 'Survey End Time' para organizar los archivos
+master_evaluado$mes_año <- format(master_evaluado$`Survey End Time`, "%Y-%m")
+
+# Dividir los datos por mes y año, y guardar cada subconjunto en un archivo CSV correspondiente
+unique_meses <- unique(master_evaluado$mes_año)
+
+for(mes in unique_meses) {
+  subset_datos <- filter(master_evaluado, mes_año == mes)
+  
+  # Convertir 'detected_flags' en subset_datos a caracter para mantener consistencia
+  subset_datos$detected_flags <- as.character(subset_datos$detected_flags)
+  
+  # Crear el nombre del archivo basado en el mes y año
+  archivo_nombre <- paste0("data_procesada/", mes, ".csv")
+  
+  # Si ya existe el archivo, leerlo, convertir 'detected_flags' a caracter y combinarlo con los datos nuevos antes de escribir de nuevo
+  if (file.exists(archivo_nombre)) {
+    datos_existentes <- read_csv(archivo_nombre)
+    datos_existentes$detected_flags <- as.character(datos_existentes$detected_flags)
+    datos_existentes$`Outlet Code` <- as.character(datos_existentes$`Outlet Code`)
+    subset_datos <- bind_rows(datos_existentes, subset_datos) %>%
+      distinct()  # Asegurar que no hay duplicados
+  }
+  
+  # Guardar el subconjunto de datos en el archivo
+  write_csv(subset_datos, archivo_nombre)
 }
 
-# Convertir todas las columnas comunes a character
-columns_to_convert <- intersect(names(master_evaluado), names(datos_mes))
-master_evaluado[columns_to_convert] <- lapply(master_evaluado[columns_to_convert], as.character)
-datos_mes[columns_to_convert] <- lapply(datos_mes[columns_to_convert], as.character)
-
-# Concatenar los datos nuevos con los antiguos
-datos_combinados <- bind_rows(master_evaluado, datos_mes)
-
-# Calcular la cantidad de NAs para cada fila antes de agrupar
-datos_combinados <- datos_combinados %>%
-  mutate(cantidad_na = rowSums(is.na(.)))
-
-# Seleccionar la entrada con menos NA para cada SessionUID
-datos_actualizados <- datos_combinados %>%
-  group_by(SessionUID) %>%
-  arrange(cantidad_na) %>%
-  slice(1) %>%
-  ungroup() %>%
-  select(-cantidad_na)
-
-# Guardar los datos actualizados en el archivo CSV del mes
-write_csv(datos_actualizados, archivo_csv_mes)
-
-# Mensaje de confirmación
-cat("Los datos para", mes_actual, "han sido actualizados y guardados en", archivo_csv_mes, "\n")
+cat("Los datos han sido actualizados y guardados en archivos separados por mes y año en 'data_procesada/'.\n")
 ```
 
 
------------EXTRACTOS-----------
-# Sabana de Calidad Madre
+## Limpieza de Data Procesada
+
+### Duplicados e Incompletos
+En esta etapa del procesamiento, se lleva a cabo una limpieza exhaustiva de los datos almacenados mensualmente. Se enfoca en identificar y eliminar registros duplicados, además de mejorar registros incompletos donde la presencia de valores NA y ceros pueda ser indicativa de datos faltantes o incorrectos. Este proceso asegura que cada `SessionUID` esté representado por la entrada más completa disponible.
+
+```{r message=FALSE, warning=FALSE}
+# Definir la carpeta donde se encuentran los datos
+folder_path <- "data_procesada"
+
+# Leer todos los archivos CSV en la carpeta
+files <- list.files(path = folder_path, pattern = "*.csv", full.names = TRUE)
+
+# Función para procesar cada archivo
+process_file <- function(file_path) {
+  # Leer el archivo
+  data <- read_csv(file_path)
+
+  # Calcular la cantidad de NAs y 0s por fila
+  data <- data %>%
+    mutate(cantidad_na = rowSums(is.na(.)),
+           cantidad_ceros = rowSums(. == 0, na.rm = TRUE))
+
+  # Combinar las cantidades de NAs y 0s para tener un criterio de selección
+  data <- data %>%
+    mutate(cantidad_na_ceros = cantidad_na + cantidad_ceros)
+
+  # Seleccionar la entrada con menos NA y 0 para cada SessionUID y eliminar los contadores
+  data <- data %>%
+    group_by(SessionUID) %>%
+    arrange(cantidad_na_ceros) %>%
+    slice(1) %>%
+    ungroup() %>%
+    select(-c(cantidad_na, cantidad_ceros, cantidad_na_ceros))
+
+  # Guardar el archivo procesado
+  write_csv(data, file_path)
+}
+
+# Aplicar la función a cada archivo
+walk(files, process_file)
+
+# Mensaje de confirmación
+cat("Todos los archivos en la carpeta", folder_path, "han sido procesados y limpiados considerando valores NA y 0.\n")
+```
+
+## Sabana de Calidad Madre
+
+### Maestro de Data Procesada
+Esta parte del proceso implica la consolidación de todos los archivos CSV individuales que han sido previamente procesados y limpiados. El objetivo es combinar estos archivos en un único dataframe maestro que facilitará el análisis agregado y más complejo. Durante este proceso, nos aseguramos de que todos los tipos de datos sean consistentes y que no haya conflictos en el formato.
+
 ```{r message=FALSE, warning=FALSE}
 # Ruta a la carpeta con los archivos procesados
 ruta_carpeta <- "data_procesada/"
@@ -695,18 +876,26 @@ master_calidad <- master_calidad %>%
     score_frentes_arca = as.numeric(score_frentes_arca),
     score_duration = as.numeric(score_duration),
     score_enfriador_total = as.numeric(score_enfriador_total),
+    score_ScenesAmb = as.numeric(score_ScenesAmb),
+    score_ScenesFrio = as.numeric(score_ScenesFrio),
+    score_NumScenes = as.numeric(score_NumScenes),
     latitude = as.numeric(latitude),
     longitude = as.numeric(longitude),
     estatus = as.numeric(estatus),
     lower_bound_frentes = as.numeric(lower_bound_frentes),
     upper_bound_frentes = as.numeric(upper_bound_frentes),
+    lower_bound_frentes_arca = as.numeric(lower_bound_frentes_arca),
+    upper_bound_frentes_arca = as.numeric(upper_bound_frentes_arca),
     lower_bound_enfriadores = as.numeric(lower_bound_enfriadores),
     upper_bound_enfriadores = as.numeric(upper_bound_enfriadores),
     lower_bound_duration = as.numeric(lower_bound_duration),
     upper_bound_duration = as.numeric(upper_bound_duration),
-    score_NumScenes = as.numeric(score_NumScenes),
-    score_ScenesAmb = as.numeric(score_ScenesAmb),
-    score_ScenesFrio = as.numeric(score_ScenesFrio)
+    lower_bound_ScenesAmb = as.numeric(lower_bound_ScenesAmb),
+    upper_bound_ScenesAmb = as.numeric(upper_bound_ScenesAmb),
+    lower_bound_ScenesFrio = as.numeric(lower_bound_ScenesFrio),
+    upper_bound_ScenesFrio = as.numeric(upper_bound_ScenesFrio),
+    lower_bound_NumScenes = as.numeric(lower_bound_NumScenes),
+    upper_bound_NumScenes = as.numeric(upper_bound_NumScenes),
   )
 
 # Guardar el dataframe combinado como un archivo Excel
@@ -715,6 +904,159 @@ write.xlsx(master_calidad, "master_calidad.xlsx")
 # Mensaje de confirmación
 cat("El archivo 'master_calidad.xlsx' ha sido guardado con éxito.\n")
 ```
+
+### Sabana de ICD Maestra
+Este proceso implica cargar, evaluar y almacenar la data procesada, realizando cálculos avanzados para determinar la calidad integral de los datos (ICD) basándose en múltiples parámetros y ponderaciones. La data evaluada se ajusta luego para asegurar que cumpla con criterios específicos antes de ser guardada para uso futuro.
+
+```{r}
+# Path a data procesada
+path_data_procesada <- "master_calidad.xlsx"
+
+# Cargar la data procesada
+data_procesada <- read_xlsx(path_data_procesada)
+
+# Crear una carpeta para la data evaluada si no existe
+path_data_evaluada <- "data_evaluada"
+dir_create(path_data_evaluada)
+
+# Parámetros con sus ponderaciones
+ponderacion_tiempo <- 0.10
+ponderacion_escenas_totales <- 0.10
+ponderacion_escenas_ambiente <- 0.05
+ponderacion_escenas_frio <- 0.05
+ponderacion_coordenadas <- 0.05
+ponderacion_flags <- 0.18
+ponderacion_enfriadores <- 0.05
+ponderacion_frentes_arca <- 0.15
+ponderacion_frentes <- 0.06
+ponderacion_sovi <- 0.24
+
+# Funciones auxiliares para cálculos específicos
+calcular_calificacion_coordenadas <- function(distancia) {
+  if (is.na(distancia)) return(0)
+  if (distancia <= 75) return(100)
+  max(50 - 10 * floor((distancia - 75 - 100) / 100), 0)
+}
+
+calcular_calificacion_sovi <- function(tradechannelcode, sovi) {
+  if (is.na(sovi)) {
+    return(0)
+  }
+  if (sovi <= 0.75) {
+    return(100)
+  }
+  return(max(100 - 10 * floor((sovi - 0.75) / 0.03), 0))
+}
+
+# Aplicar las funciones auxiliares a las columnas relevantes
+data_procesada <- data_procesada %>%
+  mutate(
+    calificacion_coordenadas = map_dbl(distance, calcular_calificacion_coordenadas),
+    calificacion_sovi = pmap_dbl(list(canal_isscom, sovi), calcular_calificacion_sovi)
+  )
+
+# Calcular ICD
+data_procesada <- data_procesada %>%
+  mutate(
+    # Calcular ICD considerando NA como 0 solo en la suma final por variable
+    ICD = pmax(0,
+               (if_else(is.na(score_duration), 0, score_duration) * ponderacion_tiempo) +
+               (if_else(is.na(score_NumScenes), 0, score_NumScenes) * ponderacion_escenas_totales) +
+               (if_else(is.na(score_ScenesAmb), 0, score_ScenesAmb) * ponderacion_escenas_ambiente) +
+               (if_else(is.na(score_ScenesFrio), 0, score_ScenesFrio) * ponderacion_escenas_frio) +
+               (if_else(is.na(calificacion_coordenadas), 0, calificacion_coordenadas) * ponderacion_coordenadas) +
+               (if_else(is.na(flag_trigger), 0, flag_trigger) * ponderacion_flags) +
+               (if_else(is.na(score_enfriador_total), 0, score_enfriador_total) * ponderacion_enfriadores) +
+               (if_else(is.na(score_frentes_arca), 0, score_frentes_arca) * ponderacion_frentes_arca) +
+               (if_else(is.na(score_frentes_total), 0, score_frentes_total) * ponderacion_frentes) +
+               (if_else(is.na(calificacion_sovi), 0, calificacion_sovi) * ponderacion_sovi)
+    ),
+    ICD = round(ICD, 1)  # Redondeo a 1 decimal
+  )
+
+# Asegurarse de que Survey End Time es de tipo fecha
+data_procesada$`Survey End Time` <- as.Date(data_procesada$`Survey End Time`)
+
+# Calcular la diferencia en días desde la fecha de la encuesta hasta hoy
+data_procesada <- data_procesada %>%
+  mutate(
+    dias_desde_encuesta = as.numeric(Sys.Date() - `Survey End Time`)
+  )
+
+# Calcular Aprobación con la nueva condición
+data_procesada <- data_procesada %>%
+  mutate(
+    dias_desde_encuesta = as.numeric(Sys.Date() - as.Date(`Survey End Time`, format = "%Y-%m-%d")), # Asegurar que `Survey End Time` se trate como fecha
+    NA_count = rowSums(is.na(select(., duration, distance, frentes_total, frentes_arca, sovi, enfriador_total, Num.Scenes, Scenes_Amb, Scenes_Frio))),
+    Aprobacion = case_when(
+      flag_trigger == -100 & ICD < 70 ~ "Reprobado",
+      flag_trigger == -100 ~ "Aprobado",
+      NA_count > 4 & dias_desde_encuesta <= 14 ~ "DF",  # Usa dias_desde_encuesta para aplicar la regla de DF solo si es dentro de los últimos 14 días
+      ICD < 70 ~ "Reprobado",
+      TRUE ~ "Aprobado"
+    )
+  ) %>%
+  select(-NA_count, -dias_desde_encuesta)  # Eliminar columnas temporales después de su uso
+
+# Calcular Notas
+data_procesada <- data_procesada %>%
+  mutate(
+    Notas = case_when(
+      Aprobacion == "DF" ~ "En Procesamiento",
+      Aprobacion == "Aprobado" ~ "",
+      TRUE ~ paste0(
+        if_else(score_duration <= 50, "Tiempo fuera de rango, ", ""),
+        if_else(calificacion_coordenadas <= 50, "Coordenadas: lejos de PDV, ", ""),
+        if_else(flag_trigger != 100, "Problemas con las flags, ", ""),
+        if_else(is.na(detected_flags), "",  # Evita agregar texto si detected_flags es NA
+                paste0(
+                  if_else(str_detect(detected_flags, "13"), "Foto de foto, ", ""),
+                  if_else(str_detect(detected_flags, "14"), "Tipo de escena incorrecto, ", ""),
+                  if_else(str_detect(detected_flags, "15"), "Mal ángulo, ", ""),
+                  if_else(str_detect(detected_flags, "16"), "Imagen borrosa, ", ""),
+                  if_else(str_detect(detected_flags, "2"), "Parte del cuerpo obstruyendo, ", ""),
+                  if_else(str_detect(detected_flags, "4"), "Muy oscuro, ", ""),
+                  if_else(str_detect(detected_flags, "26"), "Múltiples POCs desconectados en una escena, ", ""),
+                  if_else(str_detect(detected_flags, "88"), "Frentes Insuficientes, ", ""),
+                  if_else(str_detect(detected_flags, "27"), "Puerta cerrada, ", ""),
+                  if_else(str_detect(detected_flags, "32"), "Imagen de objetos (No enfriadores ni frentes), ", ""),
+                  if_else(str_detect(detected_flags, "61"), "Foto sin Frentes, ", ""),
+                  if_else(str_detect(detected_flags, "36"), "Imagen duplicada, ", ""),
+                  if_else(str_detect(detected_flags, "39"), "Objetos obstaculizando, ", ""),
+                  if_else(str_detect(detected_flags, "66"), "Sesión con 0 productos (frentes) en imágenes, ", "")
+                )),
+        if_else(score_enfriador_total <= 50, "Enfriadores en PDV no coincide con Comodato, ", ""),
+        if_else(score_NumScenes <= 50, "Número de fotografías fuera de rango, ", ""),
+        if_else(score_ScenesAmb <= 50, "Número de fotos de ambiente fuera de cantidad estándar, ", ""),
+        if_else(score_ScenesFrio <= 50, "Número de fotos de frío fuera de cantidad estándar, ", ""),
+        if_else(score_frentes_total <= 50, "Cantidad de frentes fuera de rango, ", ""),
+        if_else(score_frentes_arca <= 50, "Falta fotografiar competencia", ""),
+        sep = ""
+      )
+    )
+  )
+
+# Aprobar automáticamente si es un "AUD"
+data_procesada <- data_procesada %>%
+  mutate(
+    Aprobacion = ifelse(substr(User, 1, 3) == "AUD", "Aprobado", Aprobacion),
+    Notas = ifelse(substr(User, 1, 3) == "AUD", "Aprobado automáticamente por ser auditoría", Notas)
+  )
+
+# Seleccion de Variables
+data_evaluada <- data_procesada %>%
+  select(
+    SessionUID, SurveyType, User, `Outlet Code`, region_comercial, tamaño_homologado, canal_isscom, 
+    subcanal_isscom, duration, distance, frentes_total, frentes_arca, sovi, flag_trigger, 
+    enfriador_total, Num.Scenes, Scenes_Amb, Scenes_Frio, detected_flags, 
+    subregion_comercial, territorio, 
+    `Survey End Time`, ICD, estatus, Aprobacion, Notas
+  )
+
+# Guardar los resultados
+write_csv(data_evaluada, file.path(path_data_evaluada, "peru_icd3.csv"))
+```
+
 
 #Extracto Clientes
 ```{r}
@@ -834,5 +1176,21 @@ tabla_conteo_semanal <- tabla_conteo_semanal %>%
 write.xlsx(tabla_conteo_semanal, "/mnt/data/tabla_conteo_semanal.xlsx")
 ```
 
-x
+
+```{r}
+# Asegurarse de que las variables están en el formato correcto
+master_evaluado$frentes_total <- as.numeric(master_evaluado$frentes_total)
+
+# Ordenar los niveles de 'tamaño_homologado'
+master_evaluado$tamaño_homologado <- factor(master_evaluado$tamaño_homologado, 
+                                            levels = c("Chico", "Mediano", "Grande", NA))
+
+# Crear un gráfico de caja para mostrar la dispersión de 'frentes_total' agrupado por 'tamaño_homologado'
+ggplot(master_evaluado, aes(x = tamaño_homologado, y = frentes_total)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Dispersión de la variable 'frentes_total' por 'tamaño_homologado'",
+       x = "Tamaño Homologado",
+       y = "Frentes Total")
+```
 
